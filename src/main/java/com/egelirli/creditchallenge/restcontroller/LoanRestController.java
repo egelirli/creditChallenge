@@ -17,7 +17,9 @@ import com.egelirli.creditchallenge.dto.LoanRequestReplyDto;
 import com.egelirli.creditchallenge.dto.PayLoanRequestDto;
 import com.egelirli.creditchallenge.dto.PaymentResponse;
 import com.egelirli.creditchallenge.entity.Loan;
+import com.egelirli.creditchallenge.exception.NotAuthorizedException;
 import com.egelirli.creditchallenge.exception.ResourceNotFoundException;
+import com.egelirli.creditchallenge.security.SecurityConfiguration;
 import com.egelirli.creditchallenge.service.LoanService;
 
 @RestController
@@ -27,18 +29,28 @@ public class LoanRestController {
 	
 	private LoanService loanService;
 	
+	private SecurityConfiguration securityConfig;
 	
-	public LoanRestController(LoanService loanService) {
+	public LoanRestController(LoanService loanService, 
+							  SecurityConfiguration securityConfig) {
 		this.loanService = loanService;
+		this.securityConfig = securityConfig;
 	}
 
 	@PostMapping("/loans")
-	public LoanRequestReplyDto requestLoan(@RequestBody LoanRequestDto addLoanDto,
+	public LoanRequestReplyDto requestLoan(
+						@RequestBody LoanRequestDto addLoanDto,
 						@AuthenticationPrincipal UserDetails userDetails)
-						    		 throws ResourceNotFoundException {
+							 throws ResourceNotFoundException, NotAuthorizedException {
 		
 		
 		StringBuilder msg = new  StringBuilder();
+		
+		logger.info("In requestLoan - userDetails : {} customerId : {}",
+					userDetails,addLoanDto.getCustomerId());
+		
+		
+		securityConfig.checkUserAthorized(userDetails, addLoanDto.getCustomerId());
 		
 		//BigDecimal loanAmountBig = new  BigDecimal(loanAmount);
 		Loan loan = 
@@ -59,11 +71,16 @@ public class LoanRestController {
 		return reply;
 	}
 	
-	@PostMapping("/loans/pay")
-	public PaymentResponse addLoan(@RequestBody PayLoanRequestDto payLoanDto)
-						    		 throws ResourceNotFoundException {
 
-			return  loanService.payLoanInstallment(
+	@PostMapping("/loans/pay")
+	public PaymentResponse payLoan(
+							@RequestBody PayLoanRequestDto payLoanDto,
+							@AuthenticationPrincipal UserDetails userDetails)
+					 throws ResourceNotFoundException, NotAuthorizedException {
+
+	
+		securityConfig.checkUserAthorized(userDetails, payLoanDto.getCustomerId());		
+		return  loanService.payLoanInstallment(
 					   payLoanDto.getCustomerId(),
 					   payLoanDto.getLoanId(), 
 					   payLoanDto.getPaymentAmount() );
@@ -72,9 +89,11 @@ public class LoanRestController {
 	
 	
 	@GetMapping("/loans/{customerId}")
-	List<Loan> getLoansForCustomer(@PathVariable Long customerId) 
-			throws ResourceNotFoundException {
+	List<Loan> getLoansForCustomer(@PathVariable Long customerId,
+								   @AuthenticationPrincipal UserDetails userDetails) 
+			throws ResourceNotFoundException, NotAuthorizedException {
 	    
+		securityConfig.checkUserAthorized(userDetails, customerId);
 		return loanService.getLoanlistForCustomer(customerId);
 	}
 	

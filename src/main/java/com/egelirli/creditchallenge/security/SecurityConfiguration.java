@@ -1,7 +1,10 @@
 package com.egelirli.creditchallenge.security;
 
+import java.util.Collection;
 import java.util.function.Function;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
@@ -11,6 +14,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractAu
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -20,10 +24,12 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
+import com.egelirli.creditchallenge.exception.NotAuthorizedException;
+
 @Configuration
 public class SecurityConfiguration {
-	//LDAP Config
-	//In memory
+	private static Logger logger = 
+			LoggerFactory.getLogger(SecurityConfiguration.class);
 	
 	@Bean
 	public UserDetailsService  createUserDetailsManager() {
@@ -69,12 +75,46 @@ public class SecurityConfiguration {
 	    http.authorizeHttpRequests(registery -> registery
 	        .requestMatchers(new AntPathRequestMatcher("/h2-console/**")).permitAll()
 	        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**","/swagger-ui.html").permitAll()
-	        .requestMatchers("/**").hasRole("ADMIN"))
+	        .requestMatchers("/**").permitAll())
+//	        .requestMatchers("/**").hasRole("ADMIN")
+//	    	.requestMatchers("/**").hasRole("CUSTOMER"))
 	        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 	    http.headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin));
 	    http.formLogin(AbstractAuthenticationFilterConfigurer::permitAll);
 	    return http.build();
 	  }	
+	
+	
+	public boolean checkUserAthorized(
+			UserDetails userDetails, Long customerId) 
+							throws NotAuthorizedException {
+		boolean isAuthorized = false;
+		
+		if(userDetails == null || customerId == null) {
+			logger.warn("In checkUserAthorized - userDetails or customerId is null!");
+			throw new NotAuthorizedException("userDetails or customerId is null!");
+		}
+		
+		logger.debug("In isUserAthorized - userName : {} customerId : {}",
+				userDetails.getUsername(),customerId);
+		
+		if(userDetails.getUsername().trim().equals(customerId+"")){
+			isAuthorized = true;
+		}else {
+		 	Collection<? extends GrantedAuthority> list =  userDetails.getAuthorities();
+		 	for (GrantedAuthority authority  : list) {
+				if(authority.getAuthority().equalsIgnoreCase("ROLE_ADMIN")) {
+					isAuthorized = true; 
+				}
+			}
+		}
+		if(!isAuthorized){
+			logger.error("In requestLoan - not authorized :userDetails {}",userDetails);
+			throw new NotAuthorizedException("User not authorized");
+		}
+		
+		return isAuthorized;
+	}
 	
 	
 }
