@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.egelirli.creditchallenge.config.LoanServiceConfig;
+import com.egelirli.creditchallenge.dto.PayLoanRequestDto;
 import com.egelirli.creditchallenge.dto.PaymentResponse;
 import com.egelirli.creditchallenge.entity.Customer;
 import com.egelirli.creditchallenge.entity.Loan;
@@ -121,34 +122,66 @@ public class LoanService {
 		return this.loanRepo.findByCustomerIdAndIsPaid(customerId,paidStatus );
     }	
 	
-    
-    public PaymentResponse payLoanInstallment(
-    				long customerId, long loanId, BigDecimal paymentAmount) 
-    										throws ResourceNotFoundException {
-    	logger.debug("In payLoanInstallment - "
-				+ "customerId: {} loanId : {} paymentAmount : {}", 
-										customerId,loanId,paymentAmount);
-
+   
+	public PaymentResponse payLoanInstallment(PayLoanRequestDto payLoanDto) 
+											throws ResourceNotFoundException{
+		logger.debug("In payLoanInstallment - "
+					+ "payLoanDto: {} ",payLoanDto);
     	Loan loan = 
-		 loanRepo.findById(loanId)
-				.orElseThrow(() -> new ResourceNotFoundException(" Loan Not Found " + loanId ) );
-    	
-    	PaymentResponse response = new PaymentResponse();
+		 loanRepo.findById(payLoanDto.getLoanId())
+				.orElseThrow(() -> new ResourceNotFoundException(
+								" Loan Not Found " + payLoanDto.getLoanId() ) );
     	
     	List<LoanInstallment> list =  
-    			installService.getInstallmentlistForLoanWithPaidStatus(loanId, false);
+    			installService.getInstallmentlistForLoanWithPaidStatus(
+    												payLoanDto.getLoanId(), false);
     	
-    	LocalDate today = LocalDate.now();
     	
+    	LocalDate paymentDay = LocalDate.now();
+    	if(payLoanDto.getPaymentDate() != null) {
+    		paymentDay = payLoanDto.getPaymentDate();
+    	}
+    	
+    	PaymentResponse response = payLoanInstallment(
+    				payLoanDto.getCustomerId(), list, payLoanDto.getPaymentAmount(),  paymentDay);
+   
+    	customerService.processInstallmentPaid(
+						payLoanDto.getCustomerId(), loan,   response.getNumOfInstallmentsPaid());
+    	
+    	if(response.getNumOfInstallmentsPaid() >= list.size()) {
+    		response.setLoanPaidCompletely(true);
+    		loan.setIsPaid(true);
+    		loanRepo.save(loan);
+    	}else {
+    		response.setLoanPaidCompletely(false);
+    	}
+    	
+    	
+		return response;
+    	
+	}
+
+    
+    private PaymentResponse payLoanInstallment(
+    		long customerId, 
+    		List<LoanInstallment> installList, 
+    		BigDecimal paymentAmount,
+			LocalDate paymentDay) {
+    	
+    	logger.debug("In payLoanInstallment - "
+				+ "customerId: {}  paymentAmount : {} paymentDay : {}", 
+										customerId,paymentAmount,paymentDay);
+
+    	PaymentResponse response = new PaymentResponse();
     	BigDecimal remainingPaymentAmount = paymentAmount; 
     	BigDecimal totalAmountSpent = new BigDecimal(0);
     	int numberOfInstPaid = 0;
-    	for (LoanInstallment loanInstallment : list) {
+    	for (LoanInstallment loanInstallment : installList) {
     		 logger.trace("In payLoanInstallment -  "
     		 		+ "remainingPaymentAmount : {}  loanInstallment : {}", 
     		 							remainingPaymentAmount, loanInstallment);
 			if(remainingPaymentAmount.compareTo(loanInstallment.getAmount()) >= 0) {
-				 Period diff = Period.between(today, loanInstallment.getDueDate() );
+				 Period diff = Period.between(paymentDay, loanInstallment.getDueDate() );
 				 int diffMonths = diff.getYears()*12 + diff.getMonths(); 
 				 logger.trace("In payLoanInstallment -  diffMonths : {}", diffMonths);
 				 if(diffMonths < 3  ) {
@@ -157,7 +190,7 @@ public class LoanService {
 					 
 					 totalAmountSpent = totalAmountSpent.add(loanInstallment.getAmount());
 					 installService.modifyLoanInstallmentAsPaid(
-							 				loanInstallment,today,loanInstallment.getAmount() );
+								loanInstallment,paymentDay,loanInstallment.getAmount() );
 					 numberOfInstPaid++;
 				 }else { //diffMonths > 3
 					break;
@@ -170,15 +203,6 @@ public class LoanService {
     	response.setNumOfInstallmentsPaid(numberOfInstPaid);
     	response.setTotalAmountSpent(totalAmountSpent);
     	
-    	customerService.processInstallmentPaid(customerId, loan, numberOfInstPaid);
-    	
-    	if(numberOfInstPaid >= list.size()) {
-    		response.setLoanPaidCompletely(true);
-    		loan.setIsPaid(true);
-    		loanRepo.save(loan);
-    	}else {
-    		response.setLoanPaidCompletely(false);
-    	}
     	
     	return response;
     }
@@ -220,6 +244,7 @@ public class LoanService {
 	   logger.debug("In deleteAll ");
 	   loanRepo.deleteAll(); 	
 	}
+	
 	
 	
 	

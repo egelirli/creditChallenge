@@ -13,5 +13,12 @@ public class LoanRequestDto {
 	private BigDecimal loanAmount; 
 	private Float interestRate;
 	private Integer numOfInstallments;
+
+	@Override
+	public String toString() {
+		return "LoanRequestDto [customerId=" + customerId + ", loanAmount=" + loanAmount + ", interestRate="
+				+ interestRate + ", numOfInstallments=" + numOfInstallments + "]";
+	}
+	
 	
 }

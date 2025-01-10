@@ -88,6 +88,7 @@ public class SecurityConfiguration {
 	public boolean checkUserAthorized(
 			UserDetails userDetails, Long customerId) 
 							throws NotAuthorizedException {
+		
 		boolean isAuthorized = false;
 		
 		if(userDetails == null || customerId == null) {
@@ -95,7 +96,7 @@ public class SecurityConfiguration {
 			throw new NotAuthorizedException("userDetails or customerId is null!");
 		}
 		
-		logger.debug("In isUserAthorized - userName : {} customerId : {}",
+		logger.info("In isUserAthorized - userName : {} customerId : {}",
 				userDetails.getUsername(),customerId);
 		
 		if(userDetails.getUsername().trim().equals(customerId+"")){
@@ -108,6 +109,10 @@ public class SecurityConfiguration {
 				}
 			}
 		}
+		
+		logger.info("In isUserAthorized - userName : {} customerId : {} isAuthorized: {}",
+				userDetails.getUsername(),customerId,isAuthorized);
+		
 		if(!isAuthorized){
 			logger.error("In requestLoan - not authorized :userDetails {}",userDetails);
 			throw new NotAuthorizedException("User not authorized");

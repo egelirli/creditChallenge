@@ -79,11 +79,13 @@ public class LoanRestController {
 					 throws ResourceNotFoundException, NotAuthorizedException {
 
 	
-		securityConfig.checkUserAthorized(userDetails, payLoanDto.getCustomerId());		
-		return  loanService.payLoanInstallment(
-					   payLoanDto.getCustomerId(),
-					   payLoanDto.getLoanId(), 
-					   payLoanDto.getPaymentAmount() );
+		securityConfig.checkUserAthorized(userDetails, payLoanDto.getCustomerId());
+		return  loanService.payLoanInstallment(payLoanDto);
+
+//		return  loanService.payLoanInstallment(
+//					   payLoanDto.getCustomerId(),
+//					   payLoanDto.getLoanId(), 
+//					   payLoanDto.getPaymentAmount() );
 			
 	}
 	

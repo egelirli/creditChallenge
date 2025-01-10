@@ -17,6 +17,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import com.egelirli.creditchallenge.dto.PayLoanRequestDto;
 import com.egelirli.creditchallenge.dto.PaymentResponse;
 import com.egelirli.creditchallenge.entity.Customer;
 import com.egelirli.creditchallenge.entity.Loan;
@@ -192,14 +193,21 @@ public class LoanServiceUnitTest {
 		try {
 			
 			Loan loan =  loanService.addLoan(customerId, new BigDecimal("10000") , 0.2f, 6, retMsg);
+			PayLoanRequestDto payLoanDto =  PayLoanRequestDto.builder().
+					customerId(customerId).
+					loanId(loan.getLoanId()).
+					paymentAmount(new BigDecimal("5000")).
+					paymentDate(null).
+					build();
+
 			
 			PaymentResponse response = 
-					loanService.payLoanInstallment(customerId, loan.getLoanId(), new BigDecimal("5000") );
+					loanService.payLoanInstallment(payLoanDto );
 			logger.debug("In testPayLoan - response : {}", response);
 			assert(response.getNumOfInstallmentsPaid() == 2);
 			
 			PaymentResponse response2 = 
-					loanService.payLoanInstallment(customerId, loan.getLoanId(), new BigDecimal("5000") );
+					loanService.payLoanInstallment(payLoanDto );
 			logger.debug("In testPayLoan - response2 : {}", response2);
 			assert(response2.getNumOfInstallmentsPaid() == 1);
 			assert(!response.isLoanPaidCompletely());
