@@ -51,7 +51,6 @@ public class CustomerServiceUnitTest {
 		loanService.deleteAll();
 		customerService.deleteAllCustomers();
 		addCustomers();
-		
 	}
 	
 	

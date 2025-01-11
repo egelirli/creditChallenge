@@ -70,9 +70,7 @@ public class LoanRestControllerUnitTest {
 	private MockMvc mockMvc;
 	
 	//////////////////////////////////
-	//
 	// Authorization Tests
-	//
 	/////////////////////////////////
 	@Test
 	void loanListtAuthorization_403Scenario_NoUser() throws Exception {
@@ -167,7 +165,10 @@ public class LoanRestControllerUnitTest {
 	}	
 
 
-	
+	//////////////////////////////////
+	// Loan Request Tests
+	/////////////////////////////////
+
 	@Test
 	void loanRequest_200Scenario_Customer111() throws Exception {
 
