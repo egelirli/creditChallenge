@@ -54,18 +54,15 @@ public class LoanRestController {
 		
 		Loan loan = 
 			   loanService.requestLoan(requestLoanDto, msg);
-//					   requestLoanDto.getCustomerId(),
-//					   requestLoanDto.getLoanAmount(), 
-//					   requestLoanDto.getInterestRate() ,
-//					   requestLoanDto.getNumOfInstallments(),
-//					   msg );
 		if(loan == null) {
-			logger.warn(msg.toString());
+			logger.warn("In requestLoan - loan == null! msg : {} ", msg.toString());
 		}
 		
 		LoanRequestReplyDto reply = new LoanRequestReplyDto();
 		reply.setLoan(loan);
 		reply.setReplyMessage(msg.toString());
+		
+		logger.info("In requestLoan - reply : {} ",reply);
 		
 		return reply;
 	}

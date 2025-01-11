@@ -207,12 +207,20 @@ public class LoanService {
 	private Loan createAndSaveLoan(
 			Customer customer, BigDecimal loanAmount, int numOfInstallments) {
 		
-		Loan loan = new Loan();
-		loan.setCustomer(customer);
-		loan.setLoanAmount(loanAmount);
-		loan.setNumberOfInstallment(numOfInstallments);
-		loan.setCreateDate(new Date(System.currentTimeMillis()));
-		loan.setIsPaid(false);
+//		Loan loan = new Loan();
+//		loan.setCustomer(customer);
+//		loan.setLoanAmount(loanAmount);
+//		loan.setNumberOfInstallment(numOfInstallments);
+//		loan.setCreateDate(new Date(System.currentTimeMillis()));
+//		loan.setIsPaid(false);
+
+		Loan loan = Loan.builder().
+				customer(customer).
+				loanAmount(loanAmount).
+				numberOfInstallment(numOfInstallments).
+				createDate(new Date(System.currentTimeMillis())).
+				isPaid(false).
+				build();
 		loanRepo.save(loan);
 		
 		logger.debug("In createAndSaveLoan  saved the loan - "

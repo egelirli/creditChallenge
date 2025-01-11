@@ -16,11 +16,23 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Builder
+@Getter 
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 public class Loan {
 
-    @Id
+	@Setter(AccessLevel.NONE)
+	@Id
     @GeneratedValue
     private Long loanId;
     
@@ -41,68 +53,6 @@ public class Loan {
     
     @OneToMany(mappedBy = "loan")
     private List<LoanInstallment> installmentList;
-
-    
-    
-//	public Long getCustomerId() {
-//		return customerId;
-//	}
-//
-//	public void setCustomerId(Long customerId) {
-//		this.customerId = customerId;
-//	}
-
-	public Customer getCustomer() {
-		return customer;
-	}
-
-	public void setCustomer(Customer customer) {
-		this.customer = customer;
-	}
-
-	public BigDecimal getLoanAmount() {
-		return loanAmount;
-	}
-
-	public void setLoanAmount(BigDecimal loanAmount) {
-		this.loanAmount = loanAmount;
-	}
-
-	public Integer getNumberOfInstallment() {
-		return numberOfInstallment;
-	}
-
-	public void setNumberOfInstallment(Integer numberOfInstallment) {
-		this.numberOfInstallment = numberOfInstallment;
-	}
-
-	public Date getCreateDate() {
-		return createDate;
-	}
-
-	public void setCreateDate(Date createDate) {
-		this.createDate = createDate;
-	}
-
-	public Boolean getIsPaid() {
-		return isPaid;
-	}
-
-	public void setIsPaid(Boolean isPaid) {
-		this.isPaid = isPaid;
-	}
-
-	public List<LoanInstallment> getInstallmentList() {
-		return installmentList;
-	}
-
-	public void setInstallmentList(List<LoanInstallment> installmentList) {
-		this.installmentList = installmentList;
-	}
-
-	public Long getLoanId() {
-		return loanId;
-	}
 
 	@Override
 	public String toString() {
