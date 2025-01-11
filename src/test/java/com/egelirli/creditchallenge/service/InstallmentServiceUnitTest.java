@@ -16,6 +16,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import com.egelirli.creditchallenge.dto.LoanRequestDto;
 import com.egelirli.creditchallenge.entity.Customer;
 import com.egelirli.creditchallenge.entity.Loan;
 import com.egelirli.creditchallenge.entity.LoanInstallment;
@@ -80,8 +81,11 @@ public class InstallmentServiceUnitTest {
 		StringBuilder retMsg = new StringBuilder();
 		
 		try {
-			Loan loan = 
-					loanService.addLoan(customerId, new BigDecimal("10000") , 0.2f, 6, retMsg);
+			LoanRequestDto  loanReqDto = LoanRequestDto.builder().
+					customerId(customerId).loanAmount(new BigDecimal("10000")).
+					interestRate(0.2f).numOfInstallments(6).
+					build();
+			Loan loan = loanService.requestLoan(loanReqDto, retMsg);			
 			if(loan != null) {
 				List<LoanInstallment> list = installmentService.getInstallmentlistForLoan(loan.getLoanId());
 				logger.debug("In testGetListOfLoanInstallments - list(size: {}) : {}",list.size(), list);
@@ -104,8 +108,11 @@ public class InstallmentServiceUnitTest {
 		StringBuilder retMsg = new StringBuilder();
 		
 		try {
-			Loan loan = 
-					loanService.addLoan(customerId, new BigDecimal("10000") , 0.2f, 6, retMsg);
+			LoanRequestDto  loanReqDto = LoanRequestDto.builder().
+					customerId(customerId).loanAmount(new BigDecimal("10000")).
+					interestRate(0.2f).numOfInstallments(6).
+					build();
+			Loan loan =  loanService.requestLoan(loanReqDto, retMsg);
 			if(loan != null) {
 				List<LoanInstallment> list = installmentService.
 						getInstallmentlistForLoanWithPaidStatus(loan.getLoanId(),false);

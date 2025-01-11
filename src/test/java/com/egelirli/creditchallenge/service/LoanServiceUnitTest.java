@@ -17,6 +17,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import com.egelirli.creditchallenge.dto.LoanRequestDto;
 import com.egelirli.creditchallenge.dto.PayLoanRequestDto;
 import com.egelirli.creditchallenge.dto.PaymentResponse;
 import com.egelirli.creditchallenge.entity.Customer;
@@ -82,13 +83,14 @@ public class LoanServiceUnitTest {
 		StringBuilder retMsg = new StringBuilder();
 		Loan ret;
 		try {
-			//Customer customer = customerService.findCustomer(customerId);
-			//BigDecimal creditLimitOrg =  customer.getCreditLimit();
 			BigDecimal loanAmount = new BigDecimal("10000");
-//			logger.debug("In testAddLoanWithValidValues - "
-//					+ "customer : {}  loanAmount : {}",customer,loanAmount );
 			
-			ret = loanService.addLoan(customerId, loanAmount  , 0.2f, 6, retMsg);
+			LoanRequestDto  loanReqDto = LoanRequestDto.builder().
+					customerId(customerId).loanAmount(loanAmount).
+					interestRate(0.2f).numOfInstallments(6).
+					build();
+			ret = loanService.requestLoan(loanReqDto, retMsg);
+			//ret = loanService.requestLoan(customerId, loanAmount  , 0.2f, 6, retMsg);
 			logger.debug("In testAddLoanWithValidValues - retMsg : {}", retMsg);
 			
 			Customer customerMod = customerService.findCustomer(customerId);
@@ -112,7 +114,11 @@ public class LoanServiceUnitTest {
 		StringBuilder retMsg = new StringBuilder();
 		Loan ret;
 		try {
-			ret = loanService.addLoan(customerId, new BigDecimal("10000") , 0.8f, 6, retMsg);
+			LoanRequestDto  loanReqDto = LoanRequestDto.builder().
+					customerId(customerId).loanAmount(new BigDecimal("10000")).
+					interestRate(0.8f).numOfInstallments(6).
+					build();
+			ret = loanService.requestLoan(loanReqDto, retMsg);
 			logger.debug("In testWithInterestRateAboveRange retMsg: {}",retMsg);
 			assertTrue(ret == null);
 		} catch (ResourceNotFoundException e) {
@@ -129,12 +135,15 @@ public class LoanServiceUnitTest {
 		StringBuilder retMsg = new StringBuilder();
 		Loan ret;
 		try {
-			ret = loanService.addLoan(customerId, new BigDecimal("10000") , 0.2f, 6, retMsg);
+			LoanRequestDto  loanReqDto = LoanRequestDto.builder().
+					customerId(customerId).loanAmount(new BigDecimal("10000")).
+					interestRate(0.2f).numOfInstallments(6).
+					build();
+			ret = loanService.requestLoan(loanReqDto, retMsg);
 			logger.debug("In testWithCustomerIdInvalid - retMsg : {}", retMsg.toString());
 			assertTrue(ret == null);
 		} catch (ResourceNotFoundException e) {
 			assertTrue(true);
-			//fail(e.getMessage());
 		}
 		
 	}
@@ -149,8 +158,18 @@ public class LoanServiceUnitTest {
 		
 		try {
 			StringBuilder retMsg = new StringBuilder();
-			loanService.addLoan(customerId, new BigDecimal("10000") , 0.2f, 6, retMsg);
-			loanService.addLoan(customerId, new BigDecimal("20000") , 0.3f, 9, retMsg);
+			LoanRequestDto  loanReqDto = LoanRequestDto.builder().
+					customerId(customerId).loanAmount(new BigDecimal("10000")).
+					interestRate(0.2f).numOfInstallments(6).
+					build();
+			loanService.requestLoan(loanReqDto, retMsg);
+			//loanService.requestLoan(customerId, new BigDecimal("10000") , 0.2f, 6, retMsg);
+
+			LoanRequestDto  loanReqDto2 = LoanRequestDto.builder().
+					customerId(customerId).loanAmount(new BigDecimal("20000")).
+					interestRate(0.3f).numOfInstallments(9).
+					build();
+			loanService.requestLoan(loanReqDto2, retMsg);
 			List<Loan> list = loanService.getLoanlistForCustomer(customerId);
 			logger.debug("In testGetListOfLoan - list : {}", list);
 			assert(list.size() == 2);
@@ -169,8 +188,18 @@ public class LoanServiceUnitTest {
 		StringBuilder retMsg = new StringBuilder();
 		
 		try {
-			loanService.addLoan(customerId, new BigDecimal("10000") , 0.2f, 6, retMsg);
-			loanService.addLoan(customerId, new BigDecimal("20000") , 0.3f, 9, retMsg);
+			LoanRequestDto  loanReqDto = LoanRequestDto.builder().
+					customerId(customerId).loanAmount(new BigDecimal("10000")).
+					interestRate(0.2f).numOfInstallments(6).
+					build();
+			loanService.requestLoan(loanReqDto, retMsg);
+			
+			
+			LoanRequestDto  loanReqDto2 = LoanRequestDto.builder().
+					customerId(customerId).loanAmount(new BigDecimal("20000")).
+					interestRate(0.3f).numOfInstallments(9).
+					build();
+			loanService.requestLoan(loanReqDto2, retMsg);
 			List<Loan> list = loanService.getLoanlistForCustomerWithPaidStatus(customerId, false);
 			logger.debug("In testGetListOfLoan - list : {}", list);
 			assert(list.size() == 2);
@@ -192,7 +221,11 @@ public class LoanServiceUnitTest {
 		StringBuilder retMsg = new StringBuilder();
 		try {
 			
-			Loan loan =  loanService.addLoan(customerId, new BigDecimal("10000") , 0.2f, 6, retMsg);
+			LoanRequestDto  loanReqDto = LoanRequestDto.builder().
+					customerId(customerId).loanAmount(new BigDecimal("10000")).
+					interestRate(0.2f).numOfInstallments(6).
+					build();
+			Loan loan = loanService.requestLoan(loanReqDto, retMsg);
 			PayLoanRequestDto payLoanDto =  PayLoanRequestDto.builder().
 					customerId(customerId).
 					loanId(loan.getLoanId()).

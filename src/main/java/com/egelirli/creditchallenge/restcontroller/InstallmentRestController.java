@@ -13,32 +13,33 @@ import org.springframework.web.bind.annotation.RestController;
 import com.egelirli.creditchallenge.entity.LoanInstallment;
 import com.egelirli.creditchallenge.exception.NotAuthorizedException;
 import com.egelirli.creditchallenge.exception.ResourceNotFoundException;
-import com.egelirli.creditchallenge.security.SecurityConfiguration;
+import com.egelirli.creditchallenge.security.UserAuthorizer;
 import com.egelirli.creditchallenge.service.InstallmentService;
 
 @RestController
 public class InstallmentRestController {
-	private Logger logger = LoggerFactory.getLogger(LoanRestController.class);
+	private Logger logger = 
+			LoggerFactory.getLogger(LoanRestController.class);
 	
 	private InstallmentService instService;
 	
-	private SecurityConfiguration securityConfig;
+	private UserAuthorizer userAuthorizer;
 	
 	public InstallmentRestController(
 					InstallmentService instService,
-					SecurityConfiguration securityConfig) {
+					UserAuthorizer userAuthorizer) {
 		this.instService = instService;
 		
-		this.securityConfig = securityConfig;
+		this.userAuthorizer = userAuthorizer;
 	}
 	
-	@GetMapping("/installments/{loanId}")
+	@GetMapping("/installments/list/{loanId}")
 	List<LoanInstallment> getLoansForCustomer(
 						@PathVariable Long loanId,
 						@AuthenticationPrincipal UserDetails userDetails) 
 			throws ResourceNotFoundException, NotAuthorizedException {
 	    logger.debug("In getLoansForCustomer - loanId : {}", loanId);
-	    securityConfig.checkUserAthorized(userDetails, loanId);
+	    userAuthorizer.checkIfUserAuthorized(userDetails, loanId);
 		return instService.getInstallmentlistForLoan(loanId);
 	}
 	

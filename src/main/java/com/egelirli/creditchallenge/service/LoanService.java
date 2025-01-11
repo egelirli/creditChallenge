@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.egelirli.creditchallenge.config.LoanServiceConfig;
+import com.egelirli.creditchallenge.dto.LoanRequestDto;
 import com.egelirli.creditchallenge.dto.PayLoanRequestDto;
 import com.egelirli.creditchallenge.dto.PaymentResponse;
 import com.egelirli.creditchallenge.entity.Customer;
@@ -55,32 +56,28 @@ public class LoanService {
 	/**
 	 *  Creates a new loan for a given customer, amount, interest rate and 
 	 *  number of installments 
-	 * @param customerId
-	 * @param loanAmount
-	 * @param interestRate
-	 * @param numOfInstallements
-	 * @param returnMessage : Return message
+	 * @param requestLoanDto
 	 * @return Loan if created Loan successfully, null otherwise
 	 * @throws ResourceNotFoundException
 	 */
-	public Loan addLoan(Long customerId,
-						   BigDecimal loanAmount,
-						   float interestRate,
-						   int numOfInstallments,
-						   StringBuilder returnMessage) 
-								   throws ResourceNotFoundException {
+	 public Loan requestLoan(
+				   LoanRequestDto requestLoanDto,
+				   StringBuilder returnMessage) 
+						   throws ResourceNotFoundException {
 		Loan loan = null;
 		
-		logger.debug("In addLoan - customerId : {} loanAmount : {} "
-				+ "interestRate: {} numOfInstallments : {}",
-					customerId, loanAmount, interestRate, numOfInstallments);
+		logger.debug("In requestLoan - requestLoanDto : {} ", requestLoanDto.toString());
 		
-		if(!loanParamValidator.validateLoanParams(
-				customerId,loanAmount, interestRate, numOfInstallments, returnMessage)) {
+		if(!loanParamValidator.validateLoanParams(requestLoanDto,returnMessage)) {
 			return null;
 		}
 		
 		//(Optional<Customer> customer = customerRepo.findById(customerId);
+		
+		Long customerId = requestLoanDto.getCustomerId();
+	    BigDecimal loanAmount = requestLoanDto.getLoanAmount();
+ 	    float interestRate = requestLoanDto.getInterestRate();
+		int numOfInstallments = requestLoanDto.getNumOfInstallments();
 		
 		BigDecimal totalAmount = 
 				calculateTotalAmount(loanAmount, numOfInstallments, interestRate);

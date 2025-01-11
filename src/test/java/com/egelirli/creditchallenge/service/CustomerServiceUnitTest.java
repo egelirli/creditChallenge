@@ -16,6 +16,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import com.egelirli.creditchallenge.dto.LoanRequestDto;
 import com.egelirli.creditchallenge.dto.PayLoanRequestDto;
 import com.egelirli.creditchallenge.dto.PaymentResponse;
 import com.egelirli.creditchallenge.entity.Customer;
@@ -70,9 +71,9 @@ public class CustomerServiceUnitTest {
 		customer2.setCreditLimit(new BigDecimal(200000.0));
 		customer2.setUsedCreditLimit(new BigDecimal(0));
 		customerService.addCustomer(customer2);
-		
 	}
 
+	
 	@Test
 	public void testAddLoanWithValidValues() {
 		
@@ -88,7 +89,12 @@ public class CustomerServiceUnitTest {
 			logger.debug("In testAddLoanWithValidValues - "
 					+ "customer : {}  loanAmount : {}",customer,loanAmount );
 			
-			ret = loanService.addLoan(customerId, loanAmount  , 0.2f, 6, retMsg);
+			
+			LoanRequestDto  loanReqDto = LoanRequestDto.builder().
+								customerId(customerId).loanAmount(loanAmount).
+								interestRate(0.2f).numOfInstallments(6).
+								build();
+			ret = loanService.requestLoan(loanReqDto, retMsg);
 			logger.debug("In testAddLoanWithValidValues - retMsg : {}", retMsg);
 			
 			Customer customerMod = customerService.findCustomer(customerId);
@@ -116,8 +122,13 @@ public class CustomerServiceUnitTest {
 			BigDecimal loanAmount =  new BigDecimal("12000");
 			int numOfInstallments = 6;
 			BigDecimal installPrincipal = loanAmount.divide(BigDecimal.valueOf(numOfInstallments));
-			Loan loan =  loanService.addLoan(
-								customerId, loanAmount , 0.2f, numOfInstallments, retMsg);
+			
+			
+			LoanRequestDto  loanReqDto = LoanRequestDto.builder().
+					customerId(customerId).loanAmount(loanAmount).
+					interestRate(0.2f).numOfInstallments(numOfInstallments).
+					build();
+			Loan loan =  loanService.requestLoan(loanReqDto, retMsg);
 			Customer customer = customerService.findCustomer(customerId);
 			PayLoanRequestDto payLoanDto =  PayLoanRequestDto.builder().
 													customerId(customerId).
@@ -135,13 +146,6 @@ public class CustomerServiceUnitTest {
 					    equals(customer.getUsedCreditLimit().subtract
 					    		(installPrincipal.multiply(
 					    			  BigDecimal.valueOf(response.getNumOfInstallmentsPaid())))));
-
-			
-//			PaymentResponse response2 = 
-//					loanService.payLoanInstallment(customerId, loanId, new BigDecimal("20000") );
-//			logger.debug("In testPayLoan - response2 : {}", response2);
-//			assert(response2.getNumOfInstallmentsPaid() == 1);
-//			assert(!response.isLoanPaidCompletely());
 			
 		} catch (ResourceNotFoundException e) {
 			fail(e.getMessage()); 

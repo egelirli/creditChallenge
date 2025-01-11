@@ -85,41 +85,6 @@ public class SecurityConfiguration {
 	  }	
 	
 	
-	public boolean checkUserAthorized(
-			UserDetails userDetails, Long customerId) 
-							throws NotAuthorizedException {
-		
-		boolean isAuthorized = false;
-		
-		if(userDetails == null || customerId == null) {
-			logger.warn("In checkUserAthorized - userDetails or customerId is null!");
-			throw new NotAuthorizedException("userDetails or customerId is null!");
-		}
-		
-		logger.info("In isUserAthorized - userName : {} customerId : {}",
-				userDetails.getUsername(),customerId);
-		
-		if(userDetails.getUsername().trim().equals(customerId+"")){
-			isAuthorized = true;
-		}else {
-		 	Collection<? extends GrantedAuthority> list =  userDetails.getAuthorities();
-		 	for (GrantedAuthority authority  : list) {
-				if(authority.getAuthority().equalsIgnoreCase("ROLE_ADMIN")) {
-					isAuthorized = true; 
-				}
-			}
-		}
-		
-		logger.info("In isUserAthorized - userName : {} customerId : {} isAuthorized: {}",
-				userDetails.getUsername(),customerId,isAuthorized);
-		
-		if(!isAuthorized){
-			logger.error("In requestLoan - not authorized :userDetails {}",userDetails);
-			throw new NotAuthorizedException("User not authorized");
-		}
-		
-		return isAuthorized;
-	}
 	
 	
 }

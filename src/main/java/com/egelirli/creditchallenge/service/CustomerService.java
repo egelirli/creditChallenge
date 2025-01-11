@@ -2,7 +2,6 @@ package com.egelirli.creditchallenge.service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,8 +12,10 @@ import com.egelirli.creditchallenge.entity.Customer;
 import com.egelirli.creditchallenge.entity.Loan;
 import com.egelirli.creditchallenge.exception.ResourceNotFoundException;
 import com.egelirli.creditchallenge.repository.CustomerRepository;
-import com.egelirli.creditchallenge.repository.LoanRepository;
 
+import lombok.RequiredArgsConstructor;
+
+//@RequiredArgsConstructor
 @Service
 @Transactional
 public class CustomerService {
@@ -23,10 +24,9 @@ public class CustomerService {
 	private CustomerRepository customerRepo;
 
 	public CustomerService(CustomerRepository customerRepo) {
-
 		this.customerRepo = customerRepo;
 	}
-
+	
 	public boolean addCustomer(Customer customer) {
 
 		logger.debug("In addCustomer - customer {}", customer);
@@ -88,6 +88,5 @@ public class CustomerService {
 		return  customerRepo.findById(customerId)
 				.orElseThrow(() -> new ResourceNotFoundException(" Customer Not Found " + customerId));
 	}
-
 
 }

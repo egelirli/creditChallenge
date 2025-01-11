@@ -19,7 +19,7 @@ import com.egelirli.creditchallenge.dto.PaymentResponse;
 import com.egelirli.creditchallenge.entity.Loan;
 import com.egelirli.creditchallenge.exception.NotAuthorizedException;
 import com.egelirli.creditchallenge.exception.ResourceNotFoundException;
-import com.egelirli.creditchallenge.security.SecurityConfiguration;
+import com.egelirli.creditchallenge.security.UserAuthorizer;
 import com.egelirli.creditchallenge.service.LoanService;
 
 @RestController
@@ -29,17 +29,17 @@ public class LoanRestController {
 	
 	private LoanService loanService;
 	
-	private SecurityConfiguration securityConfig;
+	private UserAuthorizer userAuthorizer;
 	
 	public LoanRestController(LoanService loanService, 
-							  SecurityConfiguration securityConfig) {
+			UserAuthorizer userAuthorizer) {
 		this.loanService = loanService;
-		this.securityConfig = securityConfig;
+		this.userAuthorizer = userAuthorizer;
 	}
 
-	@PostMapping("/loans")
+	@PostMapping("/loans/request")
 	public LoanRequestReplyDto requestLoan(
-						@RequestBody LoanRequestDto addLoanDto,
+						@RequestBody LoanRequestDto requestLoanDto,
 						@AuthenticationPrincipal UserDetails userDetails)
 							 throws ResourceNotFoundException, NotAuthorizedException {
 		
@@ -47,19 +47,18 @@ public class LoanRestController {
 		StringBuilder msg = new  StringBuilder();
 		
 		logger.info("In requestLoan - userDetails : {} customerId : {}",
-					userDetails,addLoanDto.getCustomerId());
+					userDetails,requestLoanDto.getCustomerId());
 		
 		
-		securityConfig.checkUserAthorized(userDetails, addLoanDto.getCustomerId());
+		userAuthorizer.checkIfUserAuthorized(userDetails, requestLoanDto.getCustomerId());
 		
-		//BigDecimal loanAmountBig = new  BigDecimal(loanAmount);
 		Loan loan = 
-			   loanService.addLoan(
-					   addLoanDto.getCustomerId(),
-					   addLoanDto.getLoanAmount(), 
-					   addLoanDto.getInterestRate() ,
-					   addLoanDto.getNumOfInstallments(),
-					   msg );
+			   loanService.requestLoan(requestLoanDto, msg);
+//					   requestLoanDto.getCustomerId(),
+//					   requestLoanDto.getLoanAmount(), 
+//					   requestLoanDto.getInterestRate() ,
+//					   requestLoanDto.getNumOfInstallments(),
+//					   msg );
 		if(loan == null) {
 			logger.warn(msg.toString());
 		}
@@ -79,23 +78,18 @@ public class LoanRestController {
 					 throws ResourceNotFoundException, NotAuthorizedException {
 
 	
-		securityConfig.checkUserAthorized(userDetails, payLoanDto.getCustomerId());
+		userAuthorizer.checkIfUserAuthorized(userDetails, payLoanDto.getCustomerId());
 		return  loanService.payLoanInstallment(payLoanDto);
 
-//		return  loanService.payLoanInstallment(
-//					   payLoanDto.getCustomerId(),
-//					   payLoanDto.getLoanId(), 
-//					   payLoanDto.getPaymentAmount() );
-			
 	}
 	
 	
-	@GetMapping("/loans/{customerId}")
+	@GetMapping("/loans/list/{customerId}")
 	List<Loan> getLoansForCustomer(@PathVariable Long customerId,
 								   @AuthenticationPrincipal UserDetails userDetails) 
 			throws ResourceNotFoundException, NotAuthorizedException {
 	    
-		securityConfig.checkUserAthorized(userDetails, customerId);
+		userAuthorizer.checkIfUserAuthorized(userDetails, customerId);
 		return loanService.getLoanlistForCustomer(customerId);
 	}
 	
