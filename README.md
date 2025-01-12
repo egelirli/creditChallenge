@@ -1,4 +1,5 @@
 ### Credit Module Challenge
+https://github.com/egelirli/creditChallenge
 
 A backend Loan API for a bank so that their employees can 
 create, list and pay loans for their customers.
